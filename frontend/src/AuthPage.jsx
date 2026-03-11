@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from './api.js';
 import { SFX, ParticleField } from './shared.jsx';
 
 export default function AuthPage({ onAuth }) {
@@ -12,11 +12,11 @@ export default function AuthPage({ onAuth }) {
   const handleSubmit = async () => {
     setLoading(true); setError('');
     try {
-      const url  = mode==='login' ? '/api/auth/login' : '/api/auth/register';
+      const url  = mode==='login' ? '/auth/login' : '/auth/register';
       const body = mode==='login'
         ? { email:form.email, password:form.password }
         : { username:form.username, email:form.email, password:form.password };
-      const { data } = await axios.post(url, body);
+      const { data } = await api.post(url, body);
       SFX.play('login', true);
       onAuth(data);
     } catch (err) {
