@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ZONES, CLASS_ICONS, TITLES } from './shared.jsx';
 
-export default function CharSidebar({ char, username, stats, pets, eggs, onUpdate, onLogout, sfx, onTabChange }) {
+export default function CharSidebar({ char, username, stats, pets, eggs, onUpdate, onLogout, sfx, onTabChange, sidebarOpen, onSidebarClose }) {
   const [editingName, setEditingName] = useState(false);
   const [nameVal, setNameVal] = useState('');
   const [classIdx, setClassIdx] = useState(0);
@@ -13,15 +13,17 @@ export default function CharSidebar({ char, username, stats, pets, eggs, onUpdat
   const hpColor= hpPct>60?'var(--emerald-bright)':hpPct>30?'var(--amber-bright)':'var(--crimson-bright)';
 
   if (!char) return (
-    <div className="sidebar">{[1,2,3].map(i=><div key={i} className="shimmer" style={{height:'60px',marginBottom:'0.7rem'}}/>)}</div>
+    <div className={`sidebar${sidebarOpen?' open':''}`}>{[1,2,3].map(i=><div key={i} className="shimmer" style={{height:'60px',marginBottom:'0.7rem'}}/>)}</div>
   );
 
   const petCount  = pets?.length || 0;
   const eggCount  = eggs?.length || 0;
   const adultCount= pets?.filter(p=>p.stage==='adult').length || 0;
 
+  const handleTabChange = (id) => { onTabChange(id); if (onSidebarClose) onSidebarClose(); };
+
   return (
-    <div className="sidebar">
+    <div className={`sidebar${sidebarOpen?' open':''}`}>
       {/* Character Card */}
       <div className="char-card">
         <div className="char-avatar" onClick={() => { sfx('click'); setClassIdx(i=>(i+1)%CLASS_ICONS.length); }} title="Click to change class">
@@ -61,13 +63,13 @@ export default function CharSidebar({ char, username, stats, pets, eggs, onUpdat
       {/* Pet & Egg Summary */}
       <div className="sidebar-box">
         <div className="sidebar-box-title">🐾 Companions</div>
-        <div className="sidebar-stat-row" onClick={()=>onTabChange('eggs')} style={{cursor:'pointer'}}>
+        <div className="sidebar-stat-row" onClick={()=>handleTabChange('eggs')} style={{cursor:'pointer'}}>
           <span>🥚 Unhatched Eggs</span><span style={{color:'var(--rarity-rare)'}}>{eggCount}</span>
         </div>
-        <div className="sidebar-stat-row" onClick={()=>onTabChange('sanctuary')} style={{cursor:'pointer'}}>
+        <div className="sidebar-stat-row" onClick={()=>handleTabChange('sanctuary')} style={{cursor:'pointer'}}>
           <span>🐣 Baby Pets</span><span style={{color:'var(--sapphire-bright)'}}>{petCount - adultCount}</span>
         </div>
-        <div className="sidebar-stat-row" onClick={()=>onTabChange('sanctuary')} style={{cursor:'pointer'}}>
+        <div className="sidebar-stat-row" onClick={()=>handleTabChange('sanctuary')} style={{cursor:'pointer'}}>
           <span>🐉 Adult Pets</span><span style={{color:'var(--gold-bright)'}}>{adultCount}</span>
         </div>
       </div>

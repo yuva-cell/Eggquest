@@ -113,6 +113,7 @@ export default function App() {
   const [eggAward, setEggAward] = useState(null);
   const [soundOn, setSoundOn]   = useState(true);
   const [loading, setLoading]   = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const toastId = useRef(0);
 
   useEffect(() => { setAuthToken(token); }, [token]);
@@ -200,38 +201,72 @@ export default function App() {
     { id:'dashboard', label:'📊 Ledger' },
   ];
 
+  const closeSidebar = () => setSidebarOpen(false);
+  const handleTabChange = (id) => { setTab(id); closeSidebar(); };
+
+  const mobileNavTabs = [
+    { id:'quests',    icon:'📜', label:'Quests' },
+    { id:'eggs',      icon:'🥚', label:'Eggs' },
+    { id:'sanctuary', icon:'🐾', label:'Pets' },
+    { id:'shop',      icon:'🛒', label:'Shop' },
+    { id:'map',       icon:'🗺️', label:'Map' },
+    { id:'dashboard', icon:'📊', label:'Ledger' },
+  ];
+
   return (
     <>
       <ParticleField />
       <div className="app-shell">
         {/* Header */}
         <header className="header">
+          <button className="hamburger-btn" onClick={()=>setSidebarOpen(o=>!o)} aria-label="Toggle sidebar">☰</button>
           <div className="header-logo"><span>⚔️</span>QuestHub</div>
           <nav className="header-nav">
             {navTabs.map(t => (
-              <button key={t.id} className={`nav-btn ${tab===t.id?'active':''}`} onClick={()=>{ sfx('click'); setTab(t.id); }}>{t.label}</button>
+              <button key={t.id} className={`nav-btn ${tab===t.id?'active':''}`} onClick={()=>{ sfx('click'); handleTabChange(t.id); }}>{t.label}</button>
             ))}
           </nav>
           <div className="header-right">
             {char && <div className="header-gold">💰 {char.gold}</div>}
             {char && <div className="header-level">⭐ Lv.{char.level}</div>}
-            {eggs.length > 0 && <div className="header-eggs" onClick={()=>setTab('eggs')}>🥚 {eggs.length}</div>}
+            {eggs.length > 0 && <div className="header-eggs" onClick={()=>handleTabChange('eggs')}>🥚 {eggs.length}</div>}
             <button className="sound-btn" onClick={()=>setSoundOn(s=>!s)}>{soundOn?'🔊':'🔇'}</button>
           </div>
         </header>
 
+        {/* Sidebar overlay backdrop (mobile) */}
+        {sidebarOpen && <div className={`sidebar-overlay open`} onClick={closeSidebar} />}
+
         {/* Sidebar */}
-        <CharSidebar char={char} username={username} stats={stats} pets={pets} eggs={eggs} onUpdate={handleUpdate} onLogout={handleLogout} sfx={sfx} onTabChange={setTab} />
+        <CharSidebar
+          char={char} username={username} stats={stats} pets={pets} eggs={eggs}
+          onUpdate={handleUpdate} onLogout={handleLogout} sfx={sfx}
+          onTabChange={handleTabChange}
+          sidebarOpen={sidebarOpen}
+          onSidebarClose={closeSidebar}
+        />
 
         {/* Main */}
         <main className="main-content">
           {tab==='quests'    && <QuestBoard quests={quests} onAdd={handleAdd} onComplete={handleComplete} onFail={handleFail} onDelete={handleDelete} sfx={sfx} loading={loading} />}
-          {tab==='map'       && <WorldMap quests={quests} stats={stats} onZoneClick={(z)=>{ sfx('click'); setTab('quests'); }} />}
-          {tab==='eggs'      && <EggInventory eggs={eggs} onRefresh={fetchAll} sfx={sfx} onTabChange={setTab} />}
-          {tab==='sanctuary' && <PetSanctuary pets={pets} inventory={inventory} onRefresh={fetchAll} sfx={sfx} onTabChange={setTab} />}
-          {tab==='shop'      && <Shop shopItems={shopItems} inventory={inventory} char={char} onBought={()=>{ toast('Purchase successful!','success','🛒'); fetchAll(); }} sfx={sfx} />}
+          {tab==='map'       && <WorldMap quests={quests} stats={stats} onZoneClick={()=>{ sfx('click'); handleTabChange('quests'); }} />}
+          {tab==='eggs'      && <EggInventory eggs={eggs} onRefresh={fetchAll} sfx={sfx} onTabChange={handleTabChange} />}
+          {tab==='sanctuary' && <PetSanctuary pets={pets} inventory={inventory} onRefresh={fetchAll} sfx={sfx} onTabChange={handleTabChange} onError={(m)=>toast(m,'warning','⚠️')} />}
+          {tab==='shop'      && <Shop shopItems={shopItems} inventory={inventory} char={char} onBought={()=>{ toast('Purchase successful!','success','🛒'); fetchAll(); }} sfx={sfx} onError={(m)=>toast(m,'warning','⚠️')} />}
           {tab==='dashboard' && <Dashboard char={char} stats={stats} quests={quests} />}
         </main>
+
+        {/* Mobile bottom nav */}
+        <nav className="mobile-nav">
+          <div className="mobile-nav-inner">
+            {mobileNavTabs.map(t => (
+              <button key={t.id} className={`mobile-nav-btn ${tab===t.id?'active':''}`} onClick={()=>{ sfx('click'); handleTabChange(t.id); }}>
+                <span className="mnav-icon">{t.icon}</span>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </nav>
       </div>
 
       {levelUp  && <LevelUpOverlay level={levelUp} onDone={()=>setLevelUp(null)} />}

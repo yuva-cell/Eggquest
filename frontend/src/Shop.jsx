@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from './api.js';
 
-export default function Shop({ shopItems, inventory, char, onBought, sfx }) {
+export default function Shop({ shopItems, inventory, char, onBought, sfx, onError }) {
   const [tab, setTab] = useState('food');
   const [buying, setBuying] = useState(null);
 
@@ -10,7 +10,7 @@ export default function Shop({ shopItems, inventory, char, onBought, sfx }) {
   const doBuy = async (item) => {
     if (buying) return;
     if (!char || char.gold < item.cost) {
-      alert(`Not enough gold! Need ${item.cost}, have ${char?.gold || 0}`);
+      onError(`Not enough gold! Need ${item.cost}, have ${char?.gold || 0}`);
       return;
     }
     setBuying(item.id);
@@ -19,7 +19,7 @@ export default function Shop({ shopItems, inventory, char, onBought, sfx }) {
       sfx('click');
       onBought(data);
     } catch(e) {
-      alert(e.response?.data?.error || 'Purchase failed');
+      onError(e.response?.data?.error || 'Purchase failed');
     } finally { setBuying(null); }
   };
 

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import api from './api.js';
 import { EvolveOverlay } from './shared.jsx';
 
-function PetCard({ pet, inventory, onFed, onRefresh, sfx }) {
+function PetCard({ pet, inventory, onFed, onRefresh, sfx, onError }) {
   const [feeding, setFeeding] = useState(false);
   const [selectedFood, setSelectedFood] = useState('');
   const [evolvingPet, setEvolvingPet] = useState(null);
@@ -23,7 +23,7 @@ function PetCard({ pet, inventory, onFed, onRefresh, sfx }) {
       setFeeding(false); setSelectedFood('');
       onFed(data.pet);
     } catch(e) {
-      alert(e.response?.data?.error || 'Could not feed pet');
+      onError(e.response?.data?.error || 'Could not feed pet');
     }
   };
 
@@ -31,10 +31,7 @@ function PetCard({ pet, inventory, onFed, onRefresh, sfx }) {
     <>
       <div className={`pet-card ${pet.stage}`}>
         {pet.stage === 'adult' && <div className="pet-evolved-tag">✨ Adult</div>}
-        <div className="pet-stage-badge baby" style={pet.stage==='adult'?{display:'none'}:{}}>
-          🐣 Baby · {xpPct}% to Adult
-        </div>
-        {pet.stage === 'baby' && <div className="pet-stage-badge baby" style={{display:'block'}}>🐣 Baby · {xpPct}%</div>}
+        {pet.stage === 'baby'  && <div className="pet-stage-badge baby">🐣 Baby · {xpPct}% to Adult</div>}
         {pet.stage === 'adult' && <div className="pet-stage-badge adult">🐉 Adult</div>}
 
         <span className="pet-emoji">{emoji}</span>
@@ -99,7 +96,7 @@ function PetCard({ pet, inventory, onFed, onRefresh, sfx }) {
   );
 }
 
-export default function PetSanctuary({ pets, inventory, onRefresh, sfx, onTabChange }) {
+export default function PetSanctuary({ pets, inventory, onRefresh, sfx, onTabChange, onError }) {
   const updatePet = (updated) => onRefresh();
 
   return (
@@ -123,7 +120,7 @@ export default function PetSanctuary({ pets, inventory, onRefresh, sfx, onTabCha
       ) : (
         <div className="pet-grid">
           {pets.map(pet => (
-            <PetCard key={pet._id} pet={pet} inventory={inventory} onFed={updatePet} onRefresh={onRefresh} sfx={sfx} />
+          <PetCard key={pet._id} pet={pet} inventory={inventory} onFed={updatePet} onRefresh={onRefresh} sfx={sfx} onError={onError} />
           ))}
         </div>
       )}
