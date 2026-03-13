@@ -8,30 +8,24 @@ import dotenv from 'dotenv';
 dotenv.config();
 const app = express();
 
-const ALLOWED_ORIGINS = [
-  'https://eggquest.vercel.app',
-  'https://eggquest-dk85.vercel.app', // old preview URL
-  'http://localhost:3000',
-  'http://localhost:5173',
-];
+// ── CORS — set headers on every response, handle preflight immediately ─────────
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '';
+  const allowed =
+    origin.endsWith('.vercel.app') ||
+    origin === 'http://localhost:3000' ||
+    origin === 'http://localhost:5173';
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (curl, Postman, server-to-server)
-    if (!origin) return callback(null, true);
-    // Allow any *.vercel.app preview deployment
-    if (origin.endsWith('.vercel.app') || ALLOWED_ORIGINS.includes(origin)) {
-      return callback(null, true);
-    }
-    callback(new Error(`CORS blocked: ${origin}`));
-  },
-  credentials: true,
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+  if (allowed || !origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods',  'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers',  'Content-Type,Authorization');
 
-// Explicitly handle preflight for all routes
-app.options('*', cors());
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 app.use(express.json());
 
