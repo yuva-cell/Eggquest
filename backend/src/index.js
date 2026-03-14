@@ -45,14 +45,28 @@ app.use(morgan(NODE_ENV === 'production' ? 'combined' : 'dev'));
 // Gzip compression
 app.use(compression());
 
-// CORS
+// CORS – always include the known prod frontend + common dev ports
+const defaultOrigins = [
+  'https://eggquest.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5173',
+];
 const allowedOrigins = FRONTEND_URL
-  ? FRONTEND_URL.split(',').map(o => o.trim())
-  : ['http://localhost:3000', 'http://localhost:5173'];
+  ? [...new Set([...FRONTEND_URL.split(',').map(o => o.trim()), ...defaultOrigins])]
+  : defaultOrigins;
 
 app.use(cors({
-  origin: NODE_ENV === 'development' ? '*' : allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    if (NODE_ENV === 'development' || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS: origin '${origin}' not allowed`));
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(express.json({ limit: '10kb' }));
