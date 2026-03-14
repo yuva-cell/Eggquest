@@ -1,7 +1,7 @@
+import './env.js';   // ← MUST be first: loads .env before any route reads process.env
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
@@ -14,7 +14,8 @@ import petRoutes from './routes/pets.js';
 import shopRoutes from './routes/shop.js';
 import statsRoutes from './routes/stats.js';
 
-dotenv.config();
+// dotenv was already called in env.js above
+
 
 // ── Fail fast if critical env vars are missing ───────────────────────────────
 const { MONGO_URI, JWT_SECRET, PORT = 5000, NODE_ENV = 'development', FRONTEND_URL } = process.env;
