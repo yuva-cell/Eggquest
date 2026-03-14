@@ -20,7 +20,15 @@ export default function AuthPage({ onAuth }) {
       SFX.play('login', true);
       onAuth(data);
     } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong. Check your connection.');
+      console.error('[Auth error]', err);
+      if (err.response?.data?.error) {
+        // Server responded with an error message (e.g. "Email already registered")
+        setError(err.response.data.error);
+      } else if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+        setError('Cannot reach the server. Check your internet or try again shortly.');
+      } else {
+        setError(`Error: ${err.message || 'Something went wrong. Please try again.'}`);
+      }
     } finally { setLoading(false); }
   };
 
